@@ -1,7 +1,9 @@
-run the n8n locally on your device
-start with cloning the N8N workflow using the n8n.json as an import file
-fill out the paths in the commands of the each node as per the folder structure
-add your gemini API key to the .env file
-have the html file open on a browser to recieve and send requests
-start the n8n workflow and move to the html file
-fill out the required fields and run the workflow
+## Getting Started
+
+Follow these steps to set up and run the project locally on your device:
+
+1. **Clone and Import**: Clone the repository and import the workflow into n8n using the `n8n.json` file.
+2. **Configure Node Paths**: Update the file paths in the commands for each n8n node to match your local folder structure.
+3. **Set Up Environment**: Add your Gemini API key to your local `.env` file.
+4. **Open UI**: Open the HTML file in a web browser to handle incoming and outgoing requests.
+5. **Execute Workflow**: Start the n8n workflow, switch over to the open HTML page, fill out the required fields, and trigger the execution.
