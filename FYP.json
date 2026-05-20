@@ -1,0 +1,105 @@
+{
+  "name": "FYP",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "video-summarization",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-448, 96],
+      "id": "6092a7a7-7fd2-42af-9a8e-e42e93933e3d",
+      "name": "Webhook",
+      "webhookId": "ba7b0258-c04b-4b3e-aed0-b41fcebda9f1"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "C:/FYP/video_storage/temp_video.mp4",
+        "dataPropertyName": "video",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [-224, 96],
+      "id": "3398b6cc-d848-45f9-97e6-ac1b1610640d",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "command": "=py \"C:/FYP/scripts/generate_timestamps.py\" \"C:/FYP/video_storage/temp_video.mp4\" \"C:/FYP/timestamps.json\" \"{{$json.body.prompt}}\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "a292bf4f-5992-4fd5-8c1c-d07736428082",
+      "name": "Execute Command",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "command": "=py \"C:/FYP/scripts/clip_generator.py\" \"C:/FYP/video_storage/temp_video.mp4\" \"C:/FYP/timestamps.json\" \"{{$json.body.output_path}}\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [0, 192],
+      "id": "5d098f28-c979-4feb-bbfe-5a06ce793bc4",
+      "name": "Execute Command1",
+      "alwaysOutputData": true,
+      "notesInFlow": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execute Command1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cdf7e959-863f-45a4-b154-f1b64f8131c0",
+  "meta": {
+    "instanceId": "15f9e873d7b78914a7b674f5397015fde250f5499b2bffdbdee53fd5b6464a89"
+  },
+  "id": "9j3SsB721a2s6Bzw",
+  "tags": []
+}
