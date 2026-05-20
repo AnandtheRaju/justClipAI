@@ -1,0 +1,1353 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Video Summarization</title>
+    <style>
+      :root {
+        /* Default = Dark theme */
+        --bg: #050816;
+        --bg-grad-1: #1f2937;
+        --bg-grad-2: #020617;
+
+        --bg-card: #0f172a;
+        --bg-card-soft: #111827;
+        --bg-elevated: #020617;
+
+        --accent: #3b82f6;
+        --accent-soft: rgba(59, 130, 246, 0.16);
+        --accent-strong: #2563eb;
+
+        --text-main: #f9fafb;
+        --text-muted: #9ca3af;
+
+        --border-subtle: rgba(148, 163, 184, 0.4);
+        --border-strong: rgba(148, 163, 184, 0.8);
+
+        --error: #ef4444;
+        --error-bg: rgba(127, 29, 29, 0.24);
+        --error-border: rgba(239, 68, 68, 0.85);
+        --error-text: #fecaca;
+
+        --success: #22c55e;
+        --success-bg: rgba(21, 128, 61, 0.18);
+        --success-border: rgba(34, 197, 94, 0.8);
+        --success-text: #bbf7d0;
+
+        --code-bg: #020617;
+
+        --radius-lg: 18px;
+        --radius-md: 10px;
+        --shadow-soft: 0 20px 40px rgba(15, 23, 42, 0.65);
+        --transition-fast: 0.22s ease-out;
+      }
+
+      /* Light theme overrides */
+      :root[data-theme="light"] {
+        --bg: #f3f4f6;
+        --bg-grad-1: #e5e7eb;
+        --bg-grad-2: #f9fafb;
+
+        --bg-card: #ffffff;
+        --bg-card-soft: #f9fafb;
+        --bg-elevated: #f9fafb;
+
+        --accent: #2563eb;
+        --accent-soft: rgba(37, 99, 235, 0.12);
+        --accent-strong: #1d4ed8;
+
+        --text-main: #0f172a;
+        --text-muted: #6b7280;
+
+        --border-subtle: rgba(148, 163, 184, 0.55);
+        --border-strong: rgba(100, 116, 139, 0.9);
+
+        --error: #b91c1c;
+        --error-bg: rgba(248, 113, 113, 0.14);
+        --error-border: rgba(185, 28, 28, 0.8);
+        --error-text: #7f1d1d;
+
+        --success: #15803d;
+        --success-bg: rgba(74, 222, 128, 0.12);
+        --success-border: rgba(22, 163, 74, 0.9);
+        --success-text: #14532d;
+
+        --code-bg: #0b1120;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "SF Pro Text",
+          "Segoe UI",
+          sans-serif;
+        background: radial-gradient(
+          circle at top,
+          var(--bg-grad-1) 0,
+          var(--bg-grad-2) 40%,
+          var(--bg-grad-2) 100%
+        );
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 16px;
+        transition:
+          background-color var(--transition-fast),
+          background-image var(--transition-fast),
+          color var(--transition-fast);
+      }
+
+      .app-shell {
+        width: 100%;
+        max-width: 1100px;
+        background: linear-gradient(
+          145deg,
+          var(--bg-card-soft) 0%,
+          var(--bg-elevated) 45%,
+          var(--bg-card) 100%
+        );
+        border-radius: 26px;
+        padding: 28px 26px 24px;
+        box-shadow: var(--shadow-soft);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        position: relative;
+        overflow: hidden;
+        transition:
+          background-color var(--transition-fast),
+          background-image var(--transition-fast),
+          border-color var(--transition-fast),
+          box-shadow var(--transition-fast);
+      }
+
+      .app-shell::before {
+        content: "";
+        position: absolute;
+        inset: -140px;
+        background:
+          radial-gradient(
+            circle at top left,
+            rgba(59, 130, 246, 0.18),
+            transparent 55%
+          ),
+          radial-gradient(
+            circle at bottom right,
+            rgba(236, 72, 153, 0.14),
+            transparent 55%
+          );
+        opacity: 0.9;
+        pointer-events: none;
+        z-index: -1;
+        transition: opacity var(--transition-fast);
+      }
+
+      :root[data-theme="light"] .app-shell::before {
+        opacity: 0.5;
+      }
+
+      .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .title-block {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo-pill {
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        background: radial-gradient(
+          circle at 30% 30%,
+          #7dd3fc 0,
+          #0ea5e9 28%,
+          #1d4ed8 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 20px rgba(56, 189, 248, 0.55);
+        flex-shrink: 0;
+        transition:
+          transform var(--transition-fast),
+          box-shadow var(--transition-fast);
+      }
+
+      .logo-pill span {
+        font-weight: 800;
+        font-size: 18px;
+        color: #e5f2ff;
+      }
+
+      .logo-pill:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 24px rgba(56, 189, 248, 0.65);
+      }
+
+      .title-text h1 {
+        font-size: 20px;
+        margin: 0 0 4px;
+        letter-spacing: 0.02em;
+      }
+
+      .title-text p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .badge {
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        color: var(--text-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        transition:
+          background-color var(--transition-fast),
+          border-color var(--transition-fast),
+          color var(--transition-fast),
+          box-shadow var(--transition-fast);
+      }
+
+      :root[data-theme="light"] .badge {
+        background: #f9fafb;
+        border-color: rgba(148, 163, 184, 0.7);
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+      }
+
+      .badge-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.28);
+      }
+
+      .theme-toggle {
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        background: rgba(15, 23, 42, 0.9);
+        padding: 5px 10px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: var(--text-muted);
+        transition:
+          background-color var(--transition-fast),
+          border-color var(--transition-fast),
+          color var(--transition-fast),
+          transform var(--transition-fast),
+          box-shadow var(--transition-fast);
+      }
+
+      :root[data-theme="light"] .theme-toggle {
+        background: #ffffff;
+      }
+
+      .theme-toggle:hover {
+        transform: translateY(-1px);
+        border-color: var(--border-strong);
+        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.35);
+      }
+
+      .theme-toggle-icon {
+        width: 16px;
+        height: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.2fr);
+        gap: 18px;
+      }
+
+      @media (max-width: 960px) {
+        .layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      .panel {
+        background: radial-gradient(
+          circle at top left,
+          rgba(15, 23, 42, 0.45),
+          var(--bg-card) 70%
+        );
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        padding: 16px 16px 14px;
+        position: relative;
+        overflow: hidden;
+        transition:
+          background-color var(--transition-fast),
+          background-image var(--transition-fast),
+          border-color var(--transition-fast),
+          box-shadow var(--transition-fast);
+      }
+
+      :root[data-theme="light"] .panel {
+        background: #ffffff;
+        border-color: rgba(148, 163, 184, 0.4);
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+      }
+
+      .panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at top,
+          rgba(148, 163, 184, 0.14),
+          transparent 60%
+        );
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--transition-fast);
+      }
+
+      .panel:hover::before {
+        opacity: 1;
+      }
+
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .panel-title {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text-muted);
+      }
+
+      .pill-hint {
+        font-size: 11px;
+        color: var(--text-muted);
+        background: rgba(15, 23, 42, 0.8);
+        border-radius: 999px;
+        padding: 3px 8px;
+        transition:
+          background-color var(--transition-fast),
+          color var(--transition-fast),
+          border-color var(--transition-fast);
+      }
+
+      :root[data-theme="light"] .pill-hint {
+        background: #f3f4f6;
+      }
+
+      .field {
+        margin-bottom: 12px;
+      }
+
+      .field-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 4px;
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      .field-label span {
+        font-size: 11px;
+        opacity: 0.8;
+      }
+
+      .input,
+      textarea {
+        width: 100%;
+        border-radius: var(--radius-md);
+        padding: 8px 10px;
+        border: 1px solid var(--border-subtle);
+        background: rgba(15, 23, 42, 0.95);
+        color: var(--text-main);
+        font-size: 13px;
+        outline: none;
+        transition:
+          border-color var(--transition-fast),
+          box-shadow var(--transition-fast),
+          background-color var(--transition-fast),
+          transform var(--transition-fast),
+          color var(--transition-fast);
+      }
+
+      :root[data-theme="light"] .input,
+      :root[data-theme="light"] textarea {
+        background: #f9fafb;
+      }
+
+      .input:focus,
+      textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
+        background: var(--bg-elevated);
+        transform: translateY(-0.5px);
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 70px;
+        max-height: 200px;
+        line-height: 1.45;
+      }
+
+      .input::placeholder,
+      textarea::placeholder {
+        color: rgba(148, 163, 184, 0.6);
+      }
+
+      .drop-zone {
+        border-radius: 14px;
+        border: 1px dashed rgba(148, 163, 184, 0.55);
+        background: linear-gradient(
+          135deg,
+          rgba(15, 23, 42, 0.95),
+          rgba(15, 23, 42, 0.88)
+        );
+        padding: 14px 12px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        cursor: pointer;
+        transition:
+          border-color var(--transition-fast),
+          background-color var(--transition-fast),
+          background-image var(--transition-fast),
+          transform var(--transition-fast),
+          box-shadow var(--transition-fast);
+      }
+
+      :root[data-theme="light"] .drop-zone {
+        background: linear-gradient(135deg, #f9fafb, #ffffff);
+        border-color: rgba(148, 163, 184, 0.8);
+      }
+
+      .drop-zone:hover {
+        border-color: rgba(59, 130, 246, 0.9);
+        background: linear-gradient(
+          135deg,
+          rgba(15, 23, 42, 1),
+          rgba(15, 23, 42, 0.92)
+        );
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.65);
+        transform: translateY(-1px);
+      }
+
+      :root[data-theme="light"] .drop-zone:hover {
+        background: linear-gradient(135deg, #eff6ff, #ffffff);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+      }
+
+      .drop-zone.dragover {
+        border-color: var(--accent);
+        background: radial-gradient(
+          circle at top,
+          rgba(37, 99, 235, 0.18),
+          var(--bg-card)
+        );
+        box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.6);
+      }
+
+      .drop-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition:
+          background-color var(--transition-fast),
+          box-shadow var(--transition-fast);
+      }
+
+      .drop-icon svg {
+        width: 20px;
+        height: 20px;
+        opacity: 0.9;
+      }
+
+      :root[data-theme="light"] .drop-icon {
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+      }
+
+      .drop-text-main {
+        font-size: 13px;
+      }
+
+      .drop-text-sub {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      .drop-badge {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.55);
+        color: var(--text-muted);
+        white-space: nowrap;
+        transition:
+          border-color var(--transition-fast),
+          color var(--transition-fast),
+          background-color var(--transition-fast);
+      }
+
+      :root[data-theme="light"] .drop-badge {
+        background: #f9fafb;
+      }
+
+      .file-meta {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--text-muted);
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .file-meta span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .file-meta strong {
+        color: var(--text-main);
+      }
+
+      .actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .btn-primary {
+        flex: 1;
+        border: none;
+        border-radius: 999px;
+        padding: 9px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        background: radial-gradient(
+          circle at 0% 0%,
+          #60a5fa 0,
+          #2563eb 40%,
+          #1d4ed8 100%
+        );
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow:
+          0 10px 22px rgba(37, 99, 235, 0.55),
+          0 0 0 1px rgba(15, 23, 42, 0.6);
+        letter-spacing: 0.02em;
+        transition:
+          transform var(--transition-fast),
+          box-shadow var(--transition-fast),
+          filter var(--transition-fast),
+          opacity var(--transition-fast),
+          background var(--transition-fast);
+      }
+
+      :root[data-theme="light"] .btn-primary {
+        box-shadow:
+          0 12px 24px rgba(37, 99, 235, 0.35),
+          0 0 0 1px rgba(15, 23, 42, 0.15);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow:
+          0 14px 28px rgba(37, 99, 235, 0.7),
+          0 0 0 1px rgba(15, 23, 42, 0.7);
+        filter: brightness(1.01);
+      }
+
+      .btn-primary:active {
+        transform: translateY(0);
+        box-shadow:
+          0 5px 12px rgba(37, 99, 235, 0.6),
+          0 0 0 1px rgba(15, 23, 42, 0.7);
+        filter: brightness(0.97);
+      }
+
+      .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: default;
+        transform: none;
+        box-shadow:
+          0 0 0 1px rgba(15, 23, 42, 0.7),
+          0 3px 8px rgba(15, 23, 42, 0.9);
+      }
+
+      .btn-secondary {
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        padding: 7px 10px;
+        font-size: 11px;
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text-muted);
+        cursor: pointer;
+        transition:
+          background-color var(--transition-fast),
+          border-color var(--transition-fast),
+          color var(--transition-fast),
+          box-shadow var(--transition-fast);
+      }
+
+      :root[data-theme="light"] .btn-secondary {
+        background: #ffffff;
+      }
+
+      .btn-secondary:hover {
+        background: rgba(15, 23, 42, 1);
+        border-color: rgba(148, 163, 184, 0.9);
+        color: var(--text-main);
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.4);
+      }
+
+      :root[data-theme="light"] .btn-secondary:hover {
+        background: #f3f4f6;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
+      }
+
+      .spinner {
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        border: 2px solid rgba(219, 234, 254, 0.45);
+        border-top-color: white;
+        animation: spin 0.65s linear infinite;
+      }
+
+      :root[data-theme="light"] .spinner {
+        border-color: rgba(59, 130, 246, 0.35);
+        border-top-color: var(--accent-strong);
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .status-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 4px 0 6px;
+        font-size: 11px;
+        color: var(--text-muted);
+        gap: 8px;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 11px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text-muted);
+        transition:
+          background-color var(--transition-fast),
+          border-color var(--transition-fast),
+          color var(--transition-fast),
+          box-shadow var(--transition-fast);
+      }
+
+      :root[data-theme="light"] .status-pill {
+        background: #f9fafb;
+      }
+
+      .status-pill.success {
+        border-color: var(--success-border);
+        background: var(--success-bg);
+        color: var(--success-text);
+      }
+
+      .status-pill.error {
+        border-color: var(--error-border);
+        background: var(--error-bg);
+        color: var(--error-text);
+      }
+
+      .status-pill.running {
+        border-color: rgba(59, 130, 246, 0.9);
+        background: rgba(37, 99, 235, 0.16);
+        color: #bfdbfe;
+      }
+
+      :root[data-theme="light"] .status-pill.running {
+        color: #1e3a8a;
+        background: rgba(191, 219, 254, 0.5);
+      }
+
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.8);
+        transition:
+          background-color var(--transition-fast),
+          box-shadow var(--transition-fast);
+      }
+
+      .status-pill.success .status-dot {
+        background: var(--success);
+      }
+
+      .status-pill.error .status-dot {
+        background: var(--error);
+      }
+
+      .status-pill.running .status-dot {
+        background: var(--accent);
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+      }
+
+      pre {
+        margin: 0;
+        padding: 10px 10px 9px;
+        border-radius: 12px;
+        background: var(--code-bg);
+        border: 1px solid rgba(15, 23, 42, 0.9);
+        color: #e5e7eb;
+        font-size: 12px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        max-height: 200px;
+        overflow: auto;
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        transition:
+          background-color var(--transition-fast),
+          border-color var(--transition-fast),
+          color var(--transition-fast);
+      }
+
+      :root[data-theme="light"] pre {
+        color: #e5e7eb;
+        border-color: #0b1120;
+      }
+
+      .result-empty {
+        opacity: 0.55;
+        font-style: italic;
+      }
+
+      /* Clips Section */
+      .clips-section {
+        margin-top: 10px;
+        border-top: 1px solid rgba(148, 163, 184, 0.3);
+        padding-top: 8px;
+      }
+
+      .clips-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 6px;
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      .clips-header span {
+        font-size: 11px;
+        opacity: 0.85;
+      }
+
+      .clips-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 10px;
+      }
+
+      .clip-card {
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: rgba(15, 23, 42, 0.9);
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        transition:
+          transform var(--transition-fast),
+          box-shadow var(--transition-fast),
+          border-color var(--transition-fast),
+          background-color var(--transition-fast);
+      }
+
+      :root[data-theme="light"] .clip-card {
+        background: #f9fafb;
+        border-color: rgba(148, 163, 184, 0.7);
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+      }
+
+      .clip-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.5);
+        border-color: rgba(59, 130, 246, 0.8);
+      }
+
+      :root[data-theme="light"] .clip-card:hover {
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+      }
+
+      .clip-video {
+        width: 100%;
+        border-radius: 9px;
+        overflow: hidden;
+        background: #000;
+      }
+
+      .clip-video video {
+        display: block;
+        width: 100%;
+      }
+
+      .clip-meta-title {
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .clip-meta-sub {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .footer-note {
+        margin-top: 12px;
+        font-size: 10px;
+        color: var(--text-muted);
+        text-align: right;
+        opacity: 0.7;
+      }
+
+      .footer-note span {
+        opacity: 0.9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <div class="app-header">
+        <div class="title-block">
+          <div class="logo-pill">
+            <span>JC</span>
+          </div>
+          <div class="title-text">
+            <h1>JustClipAI</h1>
+            <p>
+              Upload a video, describe what to detect, and let your workflow do
+              the rest.
+            </p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button
+            type="button"
+            id="themeToggle"
+            class="theme-toggle"
+            aria-label="Toggle theme"
+          >
+            <span id="themeIcon" class="theme-toggle-icon">🌙</span>
+            <span id="themeLabel">Dark</span>
+          </button>
+
+          <div class="badge">
+            <span class="badge-dot"></span>
+            n8n Webhook &bull; Localhost
+          </div>
+        </div>
+      </div>
+
+      <form id="workflowForm">
+        <div class="layout">
+          <!-- Left: Video & Prompt -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Source & Prompt</div>
+              <div class="pill-hint">MP4 / MOV / MKV</div>
+            </div>
+
+            <!-- File input (hidden) -->
+            <input
+              type="file"
+              id="videoFile"
+              accept="video/*"
+              style="display: none"
+            />
+
+            <!-- Drop Zone -->
+            <div id="dropZone" class="drop-zone">
+              <div class="drop-icon">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M6 18.5h12a3 3 0 0 0 0-6h-.5a4.5 4.5 0 0 0-8.72-1.5 3 3 0 0 0-4.28 2.67A2.5 2.5 0 0 0 6 18.5Z"
+                    stroke="#bfdbfe"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M12 9v7"
+                    stroke="#bfdbfe"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="m9.75 12.25 2.25-2.25 2.25 2.25"
+                    stroke="#bfdbfe"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <div style="flex: 1; min-width: 0">
+                <div class="drop-text-main">
+                  Drop your video here or <strong>click to browse</strong>
+                </div>
+                <div class="drop-text-sub">
+                  The file will be uploaded to your n8n workflow endpoint.
+                </div>
+              </div>
+              <div class="drop-badge">video/*</div>
+            </div>
+
+            <div id="fileMeta" class="file-meta" style="display: none">
+              <span id="fileName"></span>
+              <span id="fileSize"></span>
+            </div>
+
+            <div class="field" style="margin-top: 14px">
+              <div class="field-label">
+                <label for="prompt">Prompt</label>
+                <span>e.g. "Find all scenes where a car is visible"</span>
+              </div>
+              <textarea
+                id="prompt"
+                rows="3"
+                placeholder="Describe what to detect in the video."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Right: Output & Result + Clips -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Output & Response</div>
+              <div class="pill-hint">Local path on your system</div>
+            </div>
+
+            <div class="field">
+              <div class="field-label">
+                <label for="outputPath">Clip Save Location</label>
+                <span>Folder path</span>
+              </div>
+              <input class="input" type="text" id="outputPath" placeholder="" />
+            </div>
+
+            <div class="actions">
+              <button type="submit" id="runBtn" class="btn-primary">
+                <span
+                  id="btnSpinner"
+                  class="spinner"
+                  style="display: none"
+                ></span>
+                <span id="btnLabel">Run Workflow</span>
+              </button>
+              <button type="button" id="clearBtn" class="btn-secondary">
+                Clear
+              </button>
+            </div>
+
+            <div class="status-row">
+              <div>
+                Webhook:
+                <code style="font-size: 11px"
+                  >/webhook-test/video-summarization</code
+                >
+              </div>
+              <div id="statusPill" class="status-pill">
+                <span class="status-dot"></span>
+                Idle
+              </div>
+            </div>
+
+            <pre id="result" class="result-empty">
+No response yet. Run the workflow to see the output here.</pre
+            >
+
+            <!-- Clips Section -->
+            <div id="clipsSection" class="clips-section" style="display: none">
+              <div class="clips-header">
+                <div>Detected Clips</div>
+                <span id="clipsCountLabel"></span>
+              </div>
+              <div id="clipsGrid" class="clips-grid"></div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <div class="footer-note">
+        <span>Pro tip:</span>
+        &nbsp;Use detailed prompts (who / what / when) for sharper summaries.
+      </div>
+    </div>
+
+    <script>
+      // ===== THEME TOGGLE =====
+      const THEME_KEY = "vs-theme";
+      const themeToggleBtn = document.getElementById("themeToggle");
+      const themeIcon = document.getElementById("themeIcon");
+      const themeLabel = document.getElementById("themeLabel");
+
+      function getPreferredTheme() {
+        const stored = localStorage.getItem(THEME_KEY);
+        if (stored === "light" || stored === "dark") {
+          return stored;
+        }
+        if (
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: light)").matches
+        ) {
+          return "light";
+        }
+        return "dark";
+      }
+
+      function applyTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        if (theme === "dark") {
+          themeIcon.textContent = "🌙";
+          themeLabel.textContent = "Dark";
+        } else {
+          themeIcon.textContent = "☀️";
+          themeLabel.textContent = "Light";
+        }
+      }
+
+      function toggleTheme() {
+        const current =
+          document.documentElement.getAttribute("data-theme") || "dark";
+        const next = current === "dark" ? "light" : "dark";
+        localStorage.setItem(THEME_KEY, next);
+        applyTheme(next);
+      }
+
+      const initialTheme = getPreferredTheme();
+      applyTheme(initialTheme);
+      themeToggleBtn.addEventListener("click", toggleTheme);
+
+      // ===== WORKFLOW & CLIPS LOGIC =====
+      const videoInput = document.getElementById("videoFile");
+      const dropZone = document.getElementById("dropZone");
+      const fileMeta = document.getElementById("fileMeta");
+      const fileNameEl = document.getElementById("fileName");
+      const fileSizeEl = document.getElementById("fileSize");
+      const promptEl = document.getElementById("prompt");
+      const outputPathEl = document.getElementById("outputPath");
+      const form = document.getElementById("workflowForm");
+      const runBtn = document.getElementById("runBtn");
+      const btnSpinner = document.getElementById("btnSpinner");
+      const btnLabel = document.getElementById("btnLabel");
+      const clearBtn = document.getElementById("clearBtn");
+      const resultBox = document.getElementById("result");
+      const statusPill = document.getElementById("statusPill");
+
+      const clipsSection = document.getElementById("clipsSection");
+      const clipsGrid = document.getElementById("clipsGrid");
+      const clipsCountLabel = document.getElementById("clipsCountLabel");
+
+      function setStatus(state, message) {
+        statusPill.className = "status-pill";
+        if (state === "success") {
+          statusPill.classList.add("success");
+        } else if (state === "error") {
+          statusPill.classList.add("error");
+        } else if (state === "running") {
+          statusPill.classList.add("running");
+        }
+        statusPill.innerHTML = '<span class="status-dot"></span>' + message;
+      }
+
+      function setLoading(isLoading) {
+        runBtn.disabled = isLoading;
+        promptEl.disabled = isLoading;
+        outputPathEl.disabled = isLoading;
+        videoInput.disabled = isLoading;
+
+        btnSpinner.style.display = isLoading ? "inline-block" : "none";
+        btnLabel.textContent = isLoading ? "Running..." : "Run Workflow";
+
+        if (isLoading) {
+          setStatus("running", "Uploading & processing...");
+        }
+      }
+
+      function formatBytes(bytes) {
+        if (!bytes && bytes !== 0) return "";
+        const units = ["B", "KB", "MB", "GB"];
+        let i = 0;
+        let val = bytes;
+        while (val >= 1024 && i < units.length - 1) {
+          val /= 1024;
+          i++;
+        }
+        return val.toFixed(1) + " " + units[i];
+      }
+
+      function showFileMeta(file) {
+        if (!file) {
+          fileMeta.style.display = "none";
+          fileNameEl.textContent = "";
+          fileSizeEl.textContent = "";
+          return;
+        }
+        fileNameEl.innerHTML = "<strong>Selected:</strong> " + file.name;
+        fileSizeEl.textContent = formatBytes(file.size);
+        fileMeta.style.display = "flex";
+      }
+
+      function clearClips() {
+        clipsGrid.innerHTML = "";
+        clipsSection.style.display = "none";
+        clipsCountLabel.textContent = "";
+      }
+
+      function renderClips(clips) {
+        if (!Array.isArray(clips) || clips.length === 0) {
+          clearClips();
+          return;
+        }
+
+        clipsGrid.innerHTML = clips
+          .map((clip, index) => {
+            const label = clip.label || `Clip ${index + 1}`;
+            const start = clip.start || "";
+            const end = clip.end || "";
+            const url = clip.url || "";
+            if (!url) return "";
+            const timeLabel =
+              start || end ? `${start || "?"} → ${end || "?"}` : "";
+            return `
+            <div class="clip-card">
+              <div class="clip-video">
+                <video controls preload="metadata" src="${url}"></video>
+              </div>
+              <div class="clip-meta-title">${label}</div>
+              <div class="clip-meta-sub">${timeLabel}</div>
+            </div>
+          `;
+          })
+          .join("");
+
+        const validClips = clips.filter((c) => c && c.url);
+        if (validClips.length === 0) {
+          clearClips();
+          return;
+        }
+
+        clipsCountLabel.textContent = `${validClips.length} clip${validClips.length > 1 ? "s" : ""}`;
+        clipsSection.style.display = "block";
+      }
+
+      // File selection via click
+      dropZone.addEventListener("click", () => {
+        if (!runBtn.disabled) {
+          videoInput.click();
+        }
+      });
+
+      videoInput.addEventListener("change", () => {
+        const file = videoInput.files[0];
+        if (file) {
+          showFileMeta(file);
+          resultBox.textContent = "Ready. Click 'Run Workflow' to start.";
+          resultBox.classList.remove("result-empty");
+          setStatus("default", "Ready");
+        } else {
+          showFileMeta(null);
+        }
+      });
+
+      // Drag & drop
+      ["dragenter", "dragover"].forEach((eventName) => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (!runBtn.disabled) {
+            dropZone.classList.add("dragover");
+          }
+        });
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove("dragover");
+        });
+      });
+
+      dropZone.addEventListener("drop", (e) => {
+        if (runBtn.disabled) return;
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files && files.length > 0) {
+          const file = files[0];
+          if (!file.type.startsWith("video/")) {
+            alert("Please drop a valid video file.");
+            return;
+          }
+          videoInput.files = files;
+          showFileMeta(file);
+          resultBox.textContent = "Ready. Click 'Run Workflow' to start.";
+          resultBox.classList.remove("result-empty");
+          setStatus("default", "Ready");
+        }
+      });
+
+      // Clear form
+      clearBtn.addEventListener("click", () => {
+        if (runBtn.disabled) return;
+        form.reset();
+        showFileMeta(null);
+        clearClips();
+        resultBox.textContent =
+          "No response yet. Run the workflow to see the output here.";
+        resultBox.classList.add("result-empty");
+        setStatus("default", "Idle");
+      });
+
+      // Submit
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const file = videoInput.files[0];
+        const prompt = promptEl.value.trim();
+        const outputPath = outputPathEl.value.trim();
+
+        if (!file || !prompt || !outputPath) {
+          alert(
+            "Please provide all inputs: video file, prompt, and output folder.",
+          );
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("video", file);
+        formData.append("prompt", prompt);
+        formData.append("output_path", outputPath);
+
+        resultBox.textContent = "Uploading video and starting analysis...";
+        resultBox.classList.remove("result-empty");
+        clearClips();
+        setLoading(true);
+
+        try {
+          const response = await fetch(
+            "http://localhost:5678/webhook-test/video-summarization",
+            {
+              method: "POST",
+              body: formData,
+            },
+          );
+
+          const contentType = response.headers.get("content-type") || "";
+          let rawText = "";
+          let data = null;
+
+          if (contentType.includes("application/json")) {
+            data = await response.json();
+            rawText = JSON.stringify(data, null, 2);
+          } else {
+            rawText = await response.text();
+            try {
+              data = JSON.parse(rawText);
+            } catch {
+              // plain text, ignore parse error
+            }
+          }
+
+          resultBox.textContent = rawText || "[Empty response body]";
+
+          if (data && Array.isArray(data.clips)) {
+            renderClips(data.clips);
+          } else {
+            clearClips();
+          }
+
+          if (response.ok) {
+            setStatus("success", "Completed");
+          } else {
+            setStatus("error", "Error " + response.status);
+          }
+        } catch (err) {
+          console.error(err);
+          resultBox.textContent = "Error: " + err.message;
+          resultBox.classList.remove("result-empty");
+          clearClips();
+          setStatus("error", "Network error");
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      // Default status
+      setStatus("default", "Idle");
+    </script>
+  </body>
+</html>
